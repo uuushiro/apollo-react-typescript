@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { ApolloProvider } from "react-apollo";
+import { ApolloProvider } from "@apollo/client";
 import {
   ApolloProvider as ApolloHooksProvider,
   useMutation,
   useQuery
-} from "react-apollo-hooks";
+} from "@apollo/client";
 import { appClient } from "./graphql/client";
-import { GET_USERS, CREATE_USER } from "./graphql/tags/getUser";
+import { useUsersQuery, useCreateUserMutation, UsersDocument } from "./gen/graphql-client-api";
 
 interface User {
   id: string;
@@ -20,7 +20,7 @@ interface Users {
 }
 
 const UserList = () => {
-  const { data, error, loading } = useQuery<Users>(GET_USERS);
+  const { data, error, loading } = useUsersQuery();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -33,7 +33,7 @@ const UserList = () => {
   return (
     <ul>
       {data!.users.map(user => (
-        <li key={user.id}>{user.name}</li>
+        <li key={user?.id}>{user?.name}</li>
       ))}
     </ul>
   );
@@ -42,10 +42,7 @@ const UserList = () => {
 const UserInput = () => {
   const [state, setState] = useState("");
   
-  const  [createUser, { error, data }] = useMutation<{ createUser: Users }>(CREATE_USER, {
-    refetchQueries: [{ query: GET_USERS }],
-    variables: { name: state }
-  });
+  const  [createUser, { error, data }] = useCreateUserMutation({refetchQueries: [{ query: UsersDocument }], variables: { name: state }});
 
   const onClick = () => {
     createUser();
